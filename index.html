@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>知所栖 135 · AI 时代要学的每一件事</title>
-<!-- 知所栖 135 · 公网快照 2026-9-14 04:38:29
+<!-- 知所栖 135 · 公网快照 2026-9-14 04:52:00
      概念地图与内参是烘焙好的静态数据，不依赖服务端。
      公网无服务端时，交卷判定退回机械覆盖检查（只标 mech，不冒充「过了」）。 -->
 <style>
@@ -341,8 +341,30 @@ code{background:#161719;border:1px solid var(--line);border-radius:4px;padding:1
   font-size:12px;padding:4px 10px;cursor:pointer}
 .nei-home:hover{color:var(--fg);border-color:var(--accent2)}
 /* 月历（2026-09-14 第二版）：有内参的日子暖色点亮，选中的一天 accent，没内参的灰掉 */
-.nei-top{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin:2px 0 16px}
-.nei-cal{width:296px;flex:none;border:1px solid var(--line);border-radius:11px;background:var(--panel2);padding:10px 11px 9px}
+.nei.wide{max-width:1120px}
+.nei-top{display:flex;gap:22px;align-items:flex-start;margin:2px 0 16px}
+.nei-side{width:296px;flex:none;position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto}
+.nei-col{flex:1;min-width:0}
+@media (max-width:900px){.nei-top{flex-wrap:wrap}.nei-side{width:100%;position:static;max-height:none}}
+/* 分类 / 标签 / 策展：三组可折叠筛选（Reader 侧栏的顺序） */
+.nei-facets{margin-top:12px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);padding:4px 10px 8px}
+.nei-facets .fhead{font-size:10.5px;color:var(--fg4);padding:7px 2px 6px;border-bottom:1px solid var(--line)}
+.nei-facets .fhead b{color:var(--accent2)}
+.nei-facets .fclear{margin-left:6px;border:1px solid var(--line);background:none;color:var(--fg2);
+  border-radius:6px;font-size:10.5px;padding:1px 6px;cursor:pointer}
+.nei-facets .fclear:hover{color:var(--fg);border-color:var(--accent2)}
+.nei-facets .fg{border-top:1px solid var(--line)}
+.nei-facets .fg:first-of-type{border-top:0}
+.nei-facets .fh{display:flex;align-items:center;gap:6px;width:100%;text-align:left;background:none;border:0;
+  color:var(--fg);font:inherit;font-size:12px;font-weight:600;padding:8px 2px;cursor:pointer}
+.nei-facets .fh i{font-style:normal;color:var(--fg3);font-size:10px;width:9px}
+.nei-facets .fh:hover{color:var(--accent2)}
+.nei-facets .fb{display:flex;flex-wrap:wrap;gap:4px;padding:0 0 9px}
+.nei-facets .fchip{border:1px solid var(--line);background:none;color:var(--fg3);border-radius:999px;
+  font-size:10.5px;padding:2px 8px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nei-facets .fchip:hover{border-color:var(--line2);color:var(--fg)}
+.nei-facets .fchip.on{border-color:var(--accent2);background:#241d20;color:var(--accent2)}
+.nei-cal{width:100%;flex:none;border:1px solid var(--line);border-radius:11px;background:var(--panel2);padding:10px 11px 9px}
 .nei-cal .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .nei-cal .ch b{font-size:12.5px;font-weight:600;color:var(--fg)}
 .nei-cal .ch button{border:0;background:none;color:var(--fg2);font-size:15px;line-height:1;cursor:pointer;
@@ -581,7 +603,7 @@ body.learning #rail,body.learning #list,body.learning #main{display:none}
 <body>
 <div id="app">
   <aside id="rail">
-    <div class="r-brand">知所栖<span>135</span><span class="pubtag" id="pubtag" title="公网快照：概念地图与内参都是 2026-9-14 04:38:29 烘焙好的静态数据；静态站上没有服务端，交卷走机械覆盖检查">公网快照</span></div>
+    <div class="r-brand">知所栖<span>135</span><span class="pubtag" id="pubtag" title="公网快照：概念地图与内参都是 2026-9-14 04:52:00 烘焙好的静态数据；静态站上没有服务端，交卷走机械覆盖检查">公网快照</span></div>
     <label class="r-search">⌕<input id="q-filter" placeholder="筛选…" oninput="renderList()"></label>
     <nav class="r-list">
       <button class="r-item" data-view="neican" onclick="setView('neican')"><span class="ic">▤</span><b>内参</b><i id="r-nei"></i></button>
@@ -669,6 +691,15 @@ const NEI_TOTAL = NEI_ALL.reduce((s, i) => s + ((i.articles || []).length), 0);
 let neiPeriod = '';
 let neiScreen = 'home';
 let neiCalYM = '';          // 月历显示的月份（YYYY-MM）；默认落在最新一期那个月
+/* 日报集合的筛选：分类（条目类型）/ 标签（来源）/ 策展（重要等级）。
+   顺序照所有者给的 Reader 侧栏：先日期，再分类、标签、策展。 */
+let neiFilt = { tag: '', src: '', star: 0 };
+let neiFold = { tag: true, src: false, star: false };
+const srcKey = (a) => { try { return new URL(a.url).host.replace(/^www\./, ''); } catch (e) { return a.author || '来源'; } };
+const neiPass = (a) => (!neiFilt.tag || (a.tag || '文章') === neiFilt.tag)
+  && (!neiFilt.src || srcKey(a) === neiFilt.src)
+  && (!neiFilt.star || (a.stars || 0) >= neiFilt.star);
+const neiFiltOn = () => !!(neiFilt.tag || neiFilt.src || neiFilt.star);
 const NEI = () => NEI_ALL.find(i => i.period === neiPeriod) || NEI_ALL[0] || { articles: [] };
 const issueOfArticle = slug => NEI_ALL.find(i => (i.articles || []).some(a => a.slug === slug)) || NEI_ALL[0] || null;
 /* 路线层（09-13 加）：人工策展的前置路径，**独立于概念图谱**——顺序不写回
@@ -1838,7 +1869,7 @@ function renderList() {
     /* 左栏＝**当前选中那期**的篇目（「全部」时按期分组列全部）；主区是日报集合，日期条在上方。 */
     const iss = neiPeriod ? NEI_ALL.filter(i => i.period === neiPeriod) : NEI_ALL;
     html = iss.map(i => {
-      const rows = (i.articles || []).filter(a => hit(a.title + a.topic + a.author));
+      const rows = (i.articles || []).filter(a => neiPass(a) && hit(a.title + a.topic + a.author));
       const head = (neiPeriod || !NEI_ALL.length) ? '' : `<div class="lp-sec">${esc(i.date || i.period)} ${esc(i.weekday || '')} · ${(i.articles || []).length} 篇</div>`;
       return head + rows.map(a => rowHTML(
         `<span class="rd" style="background:${a.paletteBg || '#5e6ad2'}"></span>`
@@ -1846,7 +1877,7 @@ function renderList() {
         + `<span class="rm" style="color:#f2c94c">${STARS(a.stars)}</span>`,
         `openNeican('${a.slug}')`, neiSlug === a.slug)).join('');
     }).join('');
-    cnt = iss.reduce((n, i) => n + (i.articles || []).filter(a => hit(a.title + a.topic + a.author)).length, 0);
+    cnt = iss.reduce((n, i) => n + (i.articles || []).filter(a => neiPass(a) && hit(a.title + a.topic + a.author)).length, 0);
     if (!html) html = '<div class="lp-empty">还没有任何一期。<br>（先跑 node scripts/pull-readwise-inbox.mjs）</div>';
   } else if (currentView === 'practice') {
     cnt = 1;
@@ -1981,6 +2012,47 @@ function neiPick(period) {
   if (r && r.scrollTo) r.scrollTo(0, 0);
 }
 window.neiPick = neiPick;
+
+/* 分类 / 标签 / 策展：三个可折叠的筛选组（Reader 侧栏那个顺序：日期 → 分类 → 标签 → 策展）。
+   分类＝条目类型（观点文 / 技术拆解 / …）· 标签＝来源域名 · 策展＝重要等级（★ 是我挑出来的那档）。 */
+function neiSetFilt(key, val) {
+  if (key === 'star') neiFilt.star = neiFilt.star === val ? 0 : val;
+  else neiFilt[key] = neiFilt[key] === val ? '' : val;
+  renderNeicanHome(); renderList();
+  const box = document.getElementById('nei-facets');
+  if (box && box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
+}
+window.neiSetFilt = neiSetFilt;
+function neiFoldToggle(key) { neiFold[key] = !neiFold[key]; renderNeicanHome(); }
+window.neiFoldToggle = neiFoldToggle;
+
+function neiFacets() {
+  const all = NEI_ALL.flatMap(i => i.articles || []);
+  const tally = (arr) => arr.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {});
+  const kinds = Object.entries(tally(all.map(a => a.tag || '文章'))).sort((a, b) => b[1] - a[1]);
+  const srcs = Object.entries(tally(all.map(srcKey))).sort((a, b) => b[1] - a[1]);
+  const stars = [5, 4, 3].map(n => [n, all.filter(a => (a.stars || 0) >= n).length])
+    .filter(([, c]) => c && c < all.length);
+  const group = (key, title, chips) => `<div class="fg">
+    <button class="fh" onclick="neiFoldToggle('${key}')"><i>${neiFold[key] ? '▾' : '▸'}</i>${title}</button>
+    <div class="fb"${neiFold[key] ? '' : ' hidden'}>${chips}</div></div>`;
+  const chip = (key, val, label, on) => `<button class="fchip${on ? ' on' : ''}"
+    onclick="neiSetFilt('${key}', ${typeof val === 'number' ? val : `'${esc(val)}'`})">${esc(label)}</button>`;
+  return `<div class="nei-facets" id="nei-facets">
+    <div class="fhead">${neiFiltOn()
+      ? `筛选中 · 符合 <b>${all.filter(neiPass).length}</b> / ${all.length} 篇
+         <button class="fclear" onclick="neiClearFilt()">清空</button>`
+      : `共 ${all.length} 篇 · 按下面三组收窄`}</div>
+    ${group('tag', '分类', chip('tag', '', '全部', !neiFilt.tag)
+      + kinds.map(([k, n]) => chip('tag', k, `${k} ${n}`, neiFilt.tag === k)).join(''))}
+    ${group('src', '标签 · 来源', chip('src', '', '全部', !neiFilt.src)
+      + srcs.map(([k, n]) => chip('src', k, `${k} ${n}`, neiFilt.src === k)).join(''))}
+    ${group('star', '策展 · 重要等级', chip('star', 0, '全部', !neiFilt.star)
+      + stars.map(([n, c]) => chip('star', n, `${'★'.repeat(n)} ${c}`, neiFilt.star === n)).join(''))}
+  </div>`;
+}
+function neiClearFilt() { neiFilt = { tag: '', src: '', star: 0 }; renderNeicanHome(); renderList(); }
+window.neiClearFilt = neiClearFilt;
 
 /* 内参二级页面 · 默认屏：日报集合 */
 function openNeicanHome() {
@@ -2121,7 +2193,7 @@ function neiWhenBar() {
 }
 /* 日报集合：按期倒序，一期一张日报卡（日期 · 篇数 · 目录），点一篇进单篇阅读 */
 function issueCard(iss) {
-  const arts = iss.articles || [];
+  const arts = (iss.articles || []).filter(neiPass);
   return `<section class="nei-day">
     <div class="dh"><b>第 ${esc(iss.period)} 期</b><span>${esc(iss.date || '')} ${esc(iss.weekday || '')}</span>
       <span class="sp"></span><span>${arts.length} 篇</span></div>
@@ -2136,18 +2208,22 @@ function issueCard(iss) {
 function renderNeicanHome() {
   const wrap = document.getElementById('nei-wrap');
   if (!NEI_ALL.length) { wrap.innerHTML = '<div class="lp-empty">还没有任何一期内参。<br>（先跑 node scripts/pull-readwise-inbox.mjs --date YYYY-MM-DD）</div>'; return; }
-  const list = neiPeriod ? NEI_ALL.filter(i => i.period === neiPeriod) : NEI_ALL;
+  let list = neiPeriod ? NEI_ALL.filter(i => i.period === neiPeriod) : NEI_ALL;
+  if (neiFiltOn()) list = list.filter(i => (i.articles || []).some(neiPass));
+  const shown = list.reduce((n, i) => n + (i.articles || []).filter(neiPass).length, 0);
+  const shell = wrap.parentElement;
+  if (shell) shell.classList.add('wide');       // 日报集合要侧栏＋内容，比读单篇时宽
   wrap.innerHTML = `
     <div class="nei-top">
-      ${neiCalendar()}
-      <div class="nei-topside">
+      <aside class="nei-side">${neiCalendar()}${neiFacets()}</aside>
+      <div class="nei-col">
         <div class="nei-crumb"><b>AI 内参</b><span>›</span><span>内参日报集合</span></div>
-        <div class="nei-homehint">左边月历里<b>点亮的那些天</b>有内参，点一天看当天日报；点目录里任意一篇进单篇阅读
-          （三级笔记 / 概念网络 / 费曼 / 阅读原文）。翻到别的月份就是空的——内参是一天一期攒起来的。</div>
-        <div class="nei-topside-n">${list.length} 期 · ${list.reduce((n, i) => n + (i.articles || []).length, 0)} 篇${neiPeriod ? '' : '（全部）'}</div>
+        <div class="nei-homehint">左边先<b>月历</b>选日期（点亮的那些天有内参），再按<b>分类 / 标签 / 策展</b>收窄；
+          点目录里任意一篇进单篇阅读（三级笔记 / 概念网络 / 费曼 / 阅读原文）。</div>
+        <div class="nei-topside-n">${list.length} 期 · ${shown} 篇${neiPeriod ? '' : '（全部日期）'}${neiFiltOn() ? ' · 已筛选' : ''}</div>
+        ${list.length ? list.map(issueCard).join('') : '<div class="lp-empty">这一天／这组筛选下没有篇目。</div>'}
       </div>
-    </div>
-    ${list.map(issueCard).join('')}`;
+    </div>`;
 }
 window.renderNeicanHome = renderNeicanHome;
 
@@ -2156,6 +2232,8 @@ function renderNeican(reset) {
   const wrap = document.getElementById('nei-wrap');
   if (!a) { renderNeicanHome(); return; }
   const iss = issueOfArticle(a.slug) || NEI();
+  const shell = wrap.parentElement;
+  if (shell) shell.classList.remove('wide');
   const tabs = [['notes', '三级笔记'], ['concept', '概念网络'],
       ['feynman', (a.feynman && (a.feynman.rubric || []).length) ? '费曼 ×3' : '费曼示范'],
       ['source', '阅读原文']]
