@@ -4,7 +4,7 @@
 
 - 线上地址：<https://hou-152.github.io/zhisuoqi-135/>（**09-13 两轮减法后**：只剩「知识体系 + 内参」两栏）
 - 语义单元索引页：<https://hou-152.github.io/zhisuoqi-135/units.html>（538 个内容单元，可搜可筛，单文件）
-- 源仓库：本地项目 `知乎黑客松/`（**不含** `.private/`，仓库未公开）
+- 源仓库：本地项目 `知乎黑客松/` → <https://github.com/hou-152/zhisuoqi-135-src>（2026-09-13 起公开；**不含** `.private/`）
 - 生成方式：`node scripts/build-public.mjs`（源：`prototype/知所栖-壳.html`）· `node scripts/build-units-page.mjs`（源：`内容结构化系统/模块/ai-concept-base/data/`）
 - 概念来源：Notion 概念库 509 + 飞书 Context Engineering 28 篇 + Harness Engineering 30 篇 + AI 内参 260912 期 10 篇 → 合并 1156 → AI 相关性过滤 856 → 并入内参 80 → **936**
 
