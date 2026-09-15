@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>知所栖 135 · AI 时代要学的每一件事</title>
-<!-- 知所栖 135 · 公网快照 2026-9-15 08:36:51
+<!-- 知所栖 135 · 公网快照 2026-9-15 08:45:31
      概念地图与内参是烘焙好的静态数据，不依赖服务端。
      公网无服务端时，交卷判定退回机械覆盖检查（只标 mech，不冒充「过了」）。 -->
 <style>
@@ -490,6 +490,7 @@ code{background:#161719;border:1px solid var(--line);border-radius:4px;padding:1
 .exo-note{font-size:11px;color:var(--fg4)}
 .exp-home .exp-hero{margin:8px 0 22px}
 .exp-starlink{position:relative;overflow:hidden;background:radial-gradient(circle at 75% 20%,rgba(95,104,223,.18),transparent 38%)}.exp-starlink .exp-kicker{color:#aab0ff;font-size:13px;letter-spacing:.08em;margin-bottom:12px}.exp-starlink .exp-orbit{position:absolute;inset:-35%;pointer-events:none;opacity:.65}.exp-starlink .exp-orbit:before,.exp-starlink .exp-orbit:after,.exp-starlink .exp-orbit i{content:"";position:absolute;border:1px solid rgba(112,120,235,.16);border-radius:50%;inset:15%;transform:rotate(22deg)}.exp-starlink .exp-orbit:after{inset:27%;transform:rotate(-38deg)}.exp-starlink .exp-orbit i{inset:auto;width:7px;height:7px;background:#7882ff;border:0;top:30%;left:66%;box-shadow:0 0 18px #7882ff}.exp-starlink .exp-hero,.exp-starlink .exp-question,.exp-starlink .exp-mods,.exp-starlink .exp-note{position:relative;z-index:1}
+.starlink-home-frame{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:0;background:#000}.exp-overlay{position:relative;z-index:2;pointer-events:none}.exp-overlay>*{pointer-events:auto}.starlink-frame-note{position:absolute;z-index:3;right:18px;bottom:12px;color:#888;font-size:11px;background:rgba(0,0,0,.6);padding:4px 8px;border-radius:6px}
 .exp-question{display:flex;gap:8px;margin:0 0 22px;max-width:640px}.exp-question input{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:11px 12px;color:var(--fg);font:inherit}.exp-question button{border:0;border-radius:9px;padding:0 16px;background:#5e6ad2;color:#fff;cursor:pointer}
 .route-crosswalk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0;color:#aeb4ff;font-size:12px}.route-crosswalk-grid span{border:1px solid #2b2f4d;border-radius:8px;padding:8px 10px;background:#11131c}
 .exp-hero h2{margin:0 0 8px;font-size:24px;color:var(--fg)}
@@ -833,13 +834,13 @@ body.learning #topbar,body.learning #list,body.learning #main{display:none}
 <div id="app">
   <!-- 顶栏＝一级导航（2026-09-15 按所有者口径从左侧整条搬上来） -->
   <header id="topbar">
-    <div class="r-brand">知所栖<span>135</span><span class="pubtag" id="pubtag" title="公网快照：概念地图与内参都是 2026-9-15 08:36:51 烘焙好的静态数据；静态站上没有服务端，交卷走机械覆盖检查">公网快照</span></div>
+    <div class="r-brand">知所栖<span>135</span><span class="pubtag" id="pubtag" title="公网快照：概念地图与内参都是 2026-9-15 08:45:31 烘焙好的静态数据；静态站上没有服务端，交卷走机械覆盖检查">公网快照</span></div>
     <button class="burger" id="btn-burger" onclick="toggleList()" title="主题 / 日历列表">☰</button>
     <nav class="r-list">
       <button class="r-item" data-view="explore" onclick="setView('explore')" title="AI 内嵌首页"><span class="ic">✦</span><b>探索</b></button>
       <button class="r-item" data-view="neican" onclick="setView('neican')"><span class="ic">▤</span><b>内参</b><i id="r-nei"></i></button>
       <button class="r-item on" data-view="graph" onclick="setView('graph')"><span class="ic">◧</span><b>知识体系</b><i id="r-all"></i></button>
-      <button class="r-item" data-view="practice" onclick="openPractice()"><span class="ic">▷</span><b>实践空间</b><i>1</i></button>
+      <button class="r-item" data-view="practice" onclick="openPractice()"><span class="ic">▷</span><b>实践空间</b><i id="r-practice"></i></button>
     </nav>
     <span class="spacer" style="flex:1"></span>
     <button class="upd-btn" id="btn-upd" onclick="toggleUpd()" title="版本更新记录">更新 <span id="upd-ver"></span></button>
@@ -3416,7 +3417,7 @@ function saveQueryInput() {
 const neiQ = () => activeQuery('neican');
 const neiPass = (a) => {
   const q = neiQ();
-  return (!neiFilt.tag || (a.tag || '文章') === neiFilt.tag)
+  return (!neiFilt.tag || ((a.tag || a.topic || '文章')) === neiFilt.tag)
     && (!neiFilt.star || (a.stars || 0) >= neiFilt.star)
     && (!q || (String(a.title || '') + String(a.topic || '') + String(a.author || '')).toLowerCase().includes(q));  // 左栏搜索框也管这里
 };
@@ -3665,6 +3666,7 @@ function closeUpd() { const p = document.getElementById('upd-panel'); if (p) p.h
 window.toggleUpd = toggleUpd; window.closeUpd = closeUpd;
 
 function openExplore() {
+  document.getElementById('main')?.classList.add('explore-active');
   const reader = document.getElementById('reader');
   let w = document.getElementById('explore-wrap');
   if (!w && reader) {
@@ -3699,6 +3701,9 @@ function exploreOnboard() {
 }
 function exploreHome() {
   return `<div class="exp-home exp-starlink">
+    <iframe class="starlink-home-frame" title="队友星链首页" src="starlink-reference-v2.0.0.html"></iframe>
+    <div class="starlink-frame-note">队友星链首页 · 动画与首页交互已接入</div>
+    <div class="exp-overlay">
     <div class="exp-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="exp-hero"><div class="exp-kicker">知所栖 135 · 从一个问题开始</div><h2>把好奇心，走成一条路</h2>
       <p>先提出一个问题，再决定去读、去连接，还是去实践。</p></div>
@@ -3706,7 +3711,7 @@ function exploreHome() {
     <div class="exp-mods">${EXPLORE_STEPS.map(s => `
       <button class="exp-mod" onclick="expGo('${s.view}')">
         <span class="em-ico">${s.icon}</span><b>${esc(s.name)}</b><span>${esc(s.title)}</span></button>`).join('')}</div>
-    <div class="exp-note">可以随时回到这里，换一个入口继续。</div>
+    <div class="exp-note">可以随时回到这里，换一个入口继续。</div></div>
   </div>`;
 }
 function expMove(d) { expStep = Math.max(0, Math.min(2, expStep + d)); openExplore(); }
@@ -5138,6 +5143,8 @@ function refreshRail() {
   if (e1) e1.textContent = nodes.length;
   const e2 = document.getElementById('r-nei');
   if (e2) e2.textContent = NEI_TOTAL;
+  const ep = document.getElementById('r-practice');
+  if (ep) ep.textContent = String(practiceUnits().filter(u => u.group === '六章').length || 0);
   const mm = document.getElementById('main-meta');
   if (mm) {
     const r = mode === 'path' ? activeRoute() : null;
@@ -5201,14 +5208,18 @@ function renderList() {
        09-13：主题顶部先放**路径入口**（HANDOFF §四.2）——主题仍是知识入口，路径是主题里的编排入口。
        路径行用 .prow，不是 .row：概念行的条数断言数的还是概念，路径不是概念。 */
     const mine = ROUTES.filter(r => r.topicId === themeId);
+    html += `<div class="lp-sec">这条主题怎么走</div>`;
     if (mine.length) {
-      html += `<div class="lp-sec">推荐路径 · ${mine.length} 条（人工策展，不是把 918 个概念排成课表）</div>`
-        + mine.map(r => `<div class="prow${r.routeId === routeId && mode === 'path' ? ' on' : ''}" onclick="openRoute('${r.routeId}')">
+      html += mine.map(r => `<div class="prow${r.routeId === routeId && mode === 'path' ? ' on' : ''}" onclick="openRoute('${r.routeId}')">
             <span class="rd"></span>
-            <span class="rn">${esc(r.title)}<i>${esc(r.entryQuestion)}</i></span>
-            <span class="rm">${r.steps.length} 个概念</span></div>`).join('');
-      html += '<div class="lp-sec">这条主题下的概念</div>';
+            <span class="rn">学习路线：${esc(r.title)}<i>${esc(r.entryQuestion)}</i></span>
+            <span class="rm">${r.steps.length} 步</span></div>`).join('');
     }
+    html += `<div class="prow browse-route" onclick="setView('theme','${themeId}')">
+      <span class="rd" style="background:#7d86b8"></span>
+      <span class="rn">浏览这条主题的概念顺序<i>按前置关系从浅到深查看，不会解锁课程</i></span>
+      <span class="rm">${groupCount({id:themeId})} 个概念</span></div>`;
+    html += '<div class="lp-sec">这条主题下的概念</div>';
     const list = nodes.filter(n => matches(n) && hit(n.name + n.gloss))
       .sort((a, b) => (a.level - b.level) || a.name.localeCompare(b.name));
     cnt = list.length;
@@ -5420,7 +5431,7 @@ function practiceRouteRow(ru, i, first) {
   if (ru.superseded) {
     return `<div class="rucard rsup${first ? ' first' : ''}">
       <div class="ru-top"><b>${esc(ru.name)}</b><span class="rutag">在主线六章里</span></div>
-      <div class="ru-line">这一讲和主线六章是同一主题，不重复排两遍。</div>
+      
       <div class="ru-act"><button class="pbtn ghost" onclick="practiceEnter('${esc(ru.replacedBy)}')">去学六章这一章 →</button></div></div>`;
   }
   return `<div class="rucard${cur ? ' cur' : ''}${first ? ' first' : ''}" data-unit="${esc(ru.unitId)}">
@@ -5821,7 +5832,7 @@ function neiFacets() {
   const inSearch = a => !q || (String(a.title || '') + String(a.topic || '') + String(a.author || '')).toLowerCase().includes(q);
   const all = base.filter(inSearch);
   const tally = (arr) => arr.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {});
-  const kinds = Object.entries(tally(all.map(a => a.tag || '文章'))).sort((a, b) => b[1] - a[1]);
+  const kinds = Object.entries(tally(all.map(a => a.tag || a.topic || '文章'))).sort((a, b) => b[1] - a[1]);
   const stars = [5, 4, 3].map(n => [n, all.filter(a => (a.stars || 0) >= n).length])
     .filter(([, c]) => c && c < all.length);
   const group = (key, title, chips) => `<div class="fg">
@@ -5882,7 +5893,7 @@ window.neiTab = neiTab;
 
 function neiBody(a) {
   if (neiTabName === 'dim') {
-    if (!a.dim) return '<div class="mut">这一篇没有五维拆解。</div>';
+    if (!a.dim) return '<div class="mut"><b>这篇暂时没有五维拆解。</b><br>它有三级笔记、概念网络和费曼示范；五维材料只在完成对应拆解的文章上开放。</div>';
     return neiDimBody(a);
   }
   if (neiTabName === 'concept') {
@@ -6072,9 +6083,9 @@ function renderNeican(reset) {
   if (!a) { renderNeicanHome(); return; }
   const iss = issueOfArticle(a.slug) || NEI();
   const tabs = [['notes', '三级笔记'], ['concept', '概念网络'],
-      ['feynman', (a.feynman && (a.feynman.rubric || []).length) ? '费曼 ×3' : '费曼示范'],
-      ['source', '阅读原文']]
-    .concat(a.dim ? [['dim', a.dim.teachingMap ? '五维 · 即时费曼' : '五维']] : []);
+      ['feynman', (a.feynman && ((a.feynman.short || a.feynman.long || '').trim())) ? '费曼示范' : '费曼材料'],
+      ['source', '阅读原文'],
+      ['dim', a.dim ? (a.dim.teachingMap ? '五维 · 即时费曼' : '五维拆解') : '五维（暂无）']];
   wrap.innerHTML = `
     ${neiWhenBar()}
     <div class="nei-crumb"><b>AI 内参</b><span>›</span><span>${esc(iss.period)} 期</span>${a.tag ? `<span>›</span><span>${esc(a.tag)}</span>` : ''}
@@ -6088,7 +6099,7 @@ function renderNeican(reset) {
       <span class="why">${esc(a.tag || '')}</span>
     </div>
     <div class="nei-hero">${a.hero || ''}</div>
-    <div class="nei-cap">配图 · 按 Anthropic Newsroom 的已验证两层体系程序化绘制（满幅不透明底色 ＋ 不规则象牙白承载形 ＋ 黑色手势线，粗线 22px ＋ 手抖滤镜）· 视觉隐喻「${esc(a.metaphor)}」</div>
+    
     <div class="nei-link">原文：<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)} ↗</a></div>
     <div class="nei-card"><h5>原文简介</h5><p>${esc(a.summary)}</p></div>
     <div class="nei-card"><h5>入选理由</h5><p>${esc(a.why)}</p>
@@ -7306,3 +7317,12 @@ refreshRail();
 </script>
 </body>
 </html>
+<style>
+/* 探索是首页，不把知识树画布露在首页下面。 */
+#main.explore-active > canvas,
+#main.explore-active > .mtools,
+#main.explore-active > #tree-head { visibility:hidden; pointer-events:none; }
+#main.explore-active > #reader { z-index:20; inset:0; }
+/* 配图下方的制作说明属于内部记录，不属于学习者界面。 */
+.nei-cap { display:none !important; }
+</style>
