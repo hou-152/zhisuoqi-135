@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>知所栖 135 · AI 时代要学的每一件事</title>
-<!-- 知所栖 135 · 公网快照 2026-9-15 09:17:36
+<!-- 知所栖 135 · 公网快照 2026-9-16 19:59:33
      概念地图与内参是烘焙好的静态数据，不依赖服务端。
      公网无服务端时，交卷判定退回机械覆盖检查（只标 mech，不冒充「过了」）。 -->
 <style>
@@ -14,9 +14,14 @@
    之前那版是「全屏画布 + 滑出抽屉」——中间那一栏没有，所以没有 Linear 的味道。
    配色也按 Linear 收：近黑、低对比边、无光晕、无渐变。 */
 :root{
-  --bg:#08090a; --panel:#0e0f10; --panel2:#0b0c0d; --line:#1b1c1e; --line2:#232426;
-  --fg:#f7f8f8; --fg2:#8a8f98; --fg3:#62666d; --fg4:#3c3f44;
-  --accent:#5e6ad2; --accent2:#7c86e8;
+  /* 2026-09-15 视觉统一（负责人口径「视觉语言尽可能统一吧」）：
+     探索层是「纯黑底 + 红 + 宋体标题」，工作台跟同一套语言。
+     只换**底色 / 强调色 / 展示型标题字体**；数据密集的正文与控件仍走无衬线——可读性不让步。
+     要回退：把下面四行换成旧的 #08090a / #0e0f10 / #0b0c0d / #5e6ad2 / #7c86e8 即可。 */
+  --bg:#030303; --panel:#0c0a0a; --panel2:#090808; --line:#221c1c; --line2:#2b2424;
+  --fg:#f2eeed; --fg2:#a39b9b; --fg3:#7d7474; --fg4:#4a4444;
+  --accent:#ff6a6a; --accent2:#ff8c86;
+  --serif:"Songti SC","Noto Serif CJK SC","SimSun",Georgia,serif;
   --ok:#4cb782; --bad:#eb5757; --warn:#f2c94c; --read:#9b7fe8;
   --row:30px;
 }
@@ -25,6 +30,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
   font-family:-apple-system,BlinkMacSystemFont,"Inter","PingFang SC","Helvetica Neue",Arial,sans-serif;
   font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font-family:inherit}
+/* 展示型标题走宋体（探索层同款），正文与控件保持无衬线。字号/行高不动，只换字形。 */
+.nei-title,.nei-crumb b,#panel h2,.pcard h2,.practice-card h2,.bk-h,#learn-wrap h1,#learn-wrap h2,
+.reader h1,.reader h2,.reader h3,.rd-h1,.rd-h2,.cn-title{
+  font-family:var(--serif);letter-spacing:.02em}
+#tree-head .th-slogan,.exp-hero h2{font-family:var(--serif)}
 
 /* ── 顶栏 + 两栏（2026-09-15：一级导航搬到顶端）────────────────────
    所有者：「左边的这个一级页面、一级功能栏，内参、知识体系、实践空间，应该放到顶端」。
@@ -835,9 +845,10 @@ body.learning #topbar,body.learning #list,body.learning #main{display:none}
 <div id="app">
   <!-- 顶栏＝一级导航（2026-09-15 按所有者口径从左侧整条搬上来） -->
   <header id="topbar">
-    <div class="r-brand">知所栖<span class="pubtag" id="pubtag" title="公网快照：概念地图与内参都是 2026-9-15 09:17:36 烘焙好的静态数据；静态站上没有服务端，交卷走机械覆盖检查">公网快照</span></div>
+    <div class="r-brand">知所栖<span class="pubtag" id="pubtag" title="公网快照：概念地图与内参都是 2026-9-16 19:59:33 烘焙好的静态数据；静态站上没有服务端，交卷走机械覆盖检查">公网快照</span></div>
     <button class="burger" id="btn-burger" onclick="toggleList()" title="主题 / 日历列表">☰</button>
     <nav class="r-list">
+      <button class="r-item" id="r-explore" onclick="leaveToExplore()" title="回到探索层：首页 → 星球 → 三栏"><span class="ic">✦</span><b>探索</b><i></i></button>
       <button class="r-item" data-view="neican" onclick="setView('neican')"><span class="ic">▤</span><b>内参</b><i id="r-nei"></i></button>
       <button class="r-item on" data-view="graph" onclick="setView('graph')"><span class="ic">◧</span><b>知识体系</b><i id="r-all"></i></button>
       <button class="r-item" data-view="practice" onclick="openPractice()"><span class="ic">▷</span><b>实践空间</b><i id="r-practice"></i></button>
@@ -3682,6 +3693,12 @@ function openExplore() {
   renderList(); refreshRail();
 }
 window.openExplore = openExplore;
+/* 探索层是一个独立文件（首页黑洞 → 星球 → 三栏 → 知识星链），摆在我们这个工作台之前。
+   2026-09-15 负责人口径「探索页应该在我们的那个之前」，所以顶栏第一格是回探索层的门；
+   公开构建只改这一个常量（build-public.mjs 里替换成线上文件名）。 */
+const EXPLORE_FILE = 'explore.html';
+function leaveToExplore() { location.href = EXPLORE_FILE; }
+window.leaveToExplore = leaveToExplore;
 function exploreOnboard() { return exploreHome(); }
 function exploreHome() {
   return `<div class="exp-home exp-starlink"><iframe class="starlink-home-frame" title="动态背景" src="starlink-reference-v2.0.0.html" aria-hidden="true"></iframe><div class="exp-overlay">
@@ -3695,12 +3712,18 @@ function expMove(d) { if (d > 0) { expGo('neican'); return; } openExplore(); }
 function expDone() { expGo('neican'); }
 function expAsk(e) {
   if (e) e.preventDefault();
-  const q = String((document.getElementById('exp-question-input') || {}).value || '').trim();
+  expAskText(String((document.getElementById('exp-question-input') || {}).value || '').trim());
+}
+/* 一个问题 → 落到知识体系：命中概念就下钻到它所在主题并开卡，没命中就把问题当搜索词。
+   探索层首页那个问题框（#q=）与探索页内联输入框共用这一份，不写两套。 */
+function expAskText(q) {
+  q = String(q || '').trim();
   if (!q) return;
   const n = nodes.find(x => (x.name + ' ' + (x.nameEn || '') + ' ' + (x.aliases || []).join(' ')).toLowerCase().includes(q.toLowerCase()));
   if (n && n.tags && n.tags[0]) { viewQueries.knowledge = ''; setView('theme', n.tags[0]); openPanel(n.id); }
   else { viewQueries.knowledge = q; setView('graph'); }
 }
+window.expAskText = expAskText;
 function expGo(v) { closeUpd(); closePanel(); setView(v); }
 window.expMove = expMove; window.expDone = expDone; window.expGo = expGo; window.expAsk = expAsk;
 function renderExploreList(q = '') {
@@ -3781,7 +3804,15 @@ function mechJudge(nd, said) {
      · skill 产物落成 产物/<课题>.md（dbs-learning-beta 的 SKILL.md 写死的那条路径，
        网页版只能回一句「当前会话没有文件写入能力，先直接贴出」） */
 let APP = { on: false, dir: null };
+/* 桌面版探测也只在本地地址上做：公网静态站没有 /api/health，硬探会在控制台留一条 404
+   （2026-09-15 实测：公网产物上用假域名跑验收时抓到两条）。公网判定沿用 probeServer 的 LOCAL。 */
+const LOCAL_HOST = /^(127\.0\.0\.1|localhost|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
 async function detectApp() {
+  if (!LOCAL_HOST) {
+    const t = document.getElementById('pubtag');
+    if (t) { t.textContent = '公网快照'; t.style.display = ''; }
+    return APP;
+  }
   try {
     const r = await fetch('/api/health');
     const j = await r.json();
@@ -5107,12 +5138,19 @@ function applyHash() {
   /* 旧视图名（sphere/grid/relation）的地址入口落到**我的树**——入口撤了，别让旧链接白屏 */
   if (h === 'sphere' || h === 'grid' || h === 'relation') setMode('tree');
   else if (h === 'tree' || h === 'path' || h === 'graph') { setView('graph'); setMode(h); }
+  /* 探索层（prototype/知所栖-探索.html）跳进来的三个落点。
+     2026-09-15：外层三栏的「下一步」按负责人口径——内参 / 实践空间回主应用，知识体系留在星链。
+     这三个 hash 就是那三条回程路，地址可复现，不靠 postMessage。 */
+  else if (h === 'neican') { setView('neican'); }
+  else if (h === 'practice') { openPractice(); }
+  /* #q=<问题>：探索层首页那个问题框——带问题进来，直接落到同一个搜索逻辑（expAsk）。 */
+  else if (h.startsWith('q=')) { expAskText(h.slice(2)); }
   else if (h === 'explore') setView('explore');
   else if (h && byId.has(h)) openPanel(h);
   else {
     // 浏览器从 #graph=map 后退到空 hash＝离开系统视图的第二条出口（v4.1 根修）
     if (mode === 'graph') setMode('tree');
-    if (!h) setView('explore');
+    if (!h) setView('graph');    // 默认＝知识体系（我的树）；探索是它前面那个独立页面
     else syncPath();
   }
 }
@@ -5147,7 +5185,9 @@ window.refreshRail = refreshRail;
 /* ══ 列表栏（Linear 的中间那一栏）═════════════════════════════
    之前没有这一栏——所以没有 Linear 的味道。
    它是当前导航项的**可扫列表**：一行一个东西，右边是元信息，点开看详情。 */
-let currentView = 'explore';
+/* 2026-09-15：探索层独立成页（知所栖-探索.html）之后，工作台的默认视图回到**我的树**。
+   以前空 hash 落 explore，会把顶栏和列表整条藏起来，路径条也因此挂不上（test-daobi/test-path 的红）。 */
+let currentView = 'graph';
 let themeId = null;   // theme 态（三级）当前所在的主题；graph 态恒为 null
 const VIEW_TITLE = { explore: '探索 · AI 内嵌', graph: '主题', theme: '主题', neican: '内参 · 日报集合', practice: '实践空间 · 六章阅读器 + 状态看板' };
 const ST_COLOR = { pass: '#4cb782', fail: '#eb5757', mech: '#f2c94c', read: '#9b7fe8' };
